@@ -5,6 +5,20 @@
  * Implementation of Entity K First Login Manager.
  */
 
+function k_first_login_manager_init(){
+  module_load_include('php', 'k_first_login_manager',  'k_first_login');
+
+}
+function k_first_login_manager_menu(){
+  $items['first-login-page'] = array(
+    'title' => 'First Login Page',
+    'page callback' => 'k_first_login_manager_page',
+    'access callback' => 'user_is_logged_in',
+  );
+  return $items;
+}
+
+
 /**
  * Implements hook_entity_info().
  */
@@ -113,6 +127,19 @@ function k_first_login_manager_permission() {
 
   return $permissions;
 }
+function k_first_login_manager_page(){
+  $values = array(
+    'fields_name_array' => array(),
+    'number_step' => 0,
+    'views_name_array' => array('view_name','page',1),
+    'user_roles_array' => array('administrator'),
+    'html_markup' => 'sasicc',
+    'reference_step' => 1
+  );
+  $step = new Step($values);
+  return theme('k_first_login_base_page_step',array("step_object"=>$step));
+}
+
 
 /**
  * Implements hook_theme().
@@ -123,6 +150,10 @@ function k_first_login_manager_theme() {
       'render element' => 'elements',
       'template' => 'k_first_login_manager',
     ),
+    'k_first_login_base_page_step' => array(
+      'template' => 'k_first_login_manager_page_step',
+      'variables' => array('step_object' => NULL)
+    )
   );
 }
 
