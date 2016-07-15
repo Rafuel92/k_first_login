@@ -1,0 +1,11 @@
+name = K First Login Manager
+description = Implementation of entity K First Login Manager
+core = 7.x
+
+dependencies[] = entity
+
+files[] = includes/k_first_login_manager.class.inc
+files[] = includes/k_first_login_manager.controller.inc
+files[] = includes/k_first_login_manager.type.controller.inc
+files[] = includes/k_first_login_manager.admin.inc
+files[] = includes/k_first_login_manager_type.admin.inc

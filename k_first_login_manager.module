@@ -1,0 +1,324 @@
+<?php
+
+/**
+ * @file
+ * Implementation of Entity K First Login Manager.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function k_first_login_manager_entity_info() {
+  $return['k_first_login_manager'] = array(
+    'label' => t('K First Login Manager'),
+    // The entity class and controller class extend the default entity classes.
+    'entity class' => 'KFirstLoginManager',
+    'controller class' => 'KFirstLoginManagerController',
+    'base table' => 'k_first_login_manager',
+    'fieldable' => TRUE,
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'k_first_login_manager_id',
+      'bundle' => 'type',
+    ),
+    // Bundles are defined by the types below.
+    'bundles' => array(),
+    'bundle keys' => array('bundle' => 'type'),
+    'label callback' => 'k_first_login_manager_label',
+    'uri callback' => 'entity_class_uri',
+    'access callback' => 'k_first_login_manager_access',
+    'module' => 'k_first_login_manager',
+    // The information below is used by the Controller;
+    // which extends the EntityDefaultUIController.
+    'admin ui' => array(
+      'path' => 'admin/content/k_first_login_manager',
+      'file' => 'includes/k_first_login_manager.admin.inc',
+      'controller class' => 'KFirstLoginManagerUIController',
+      'menu wildcard' => '%k_first_login_manager',
+    ),
+  );
+  // The entity that holds information about the entity types.
+  $return['k_first_login_manager_type'] = array(
+    'label' => t('K First Login Manager Type'),
+    'entity class' => 'KFirstLoginManagerType',
+    'controller class' => 'KFirstLoginManagerTypeController',
+    'base table' => 'k_first_login_manager_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'k_first_login_manager',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label',
+    ),
+    'access callback' => 'k_first_login_manager_type_access',
+    'module' => 'k_first_login_manager',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/k_first_login_manager_types',
+      'file' => 'includes/k_first_login_manager_type.admin.inc',
+      'controller class' => 'KFirstLoginManagerTypeUIController',
+    ),
+  );
+
+  return $return;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function k_first_login_manager_entity_info_alter(&$entity_info) {
+  foreach (k_first_login_manager_get_types() as $type => $info) {
+    $entity_info['k_first_login_manager']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/k_first_login_manager_types/manage/%k_first_login_manager_type',
+        'real path' => 'admin/structure/k_first_login_manager_types/manage/' . $type,
+        'bundle argument' => 4,
+        'access arguments' => array('administer k first login manager types'),
+      ),
+    );
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function k_first_login_manager_permission() {
+  // We set up permisssions to manage entity types, manage all entities and the
+  // permissions for each individual entity.
+  $permissions = array(
+    'administer k first login manager types' => array(
+      'title' => t('Administer K First Login Manager types'),
+      'description' => t('Create and delete fields for K First Login Manager types, and set their permissions.'),
+    ),
+    'administer k first login manager' => array(
+      'title' => t('Administer K First Login Manager'),
+      'description' => t('Edit and delete all K First Login Manager'),
+    ),
+  );
+
+  // Generate permissions.
+  foreach (k_first_login_manager_get_types() as $type) {
+    $type_name = check_plain($type->type);
+    $permissions += array(
+      "edit any $type_name k first login manager" => array(
+        'title' => t('%type_name: Edit any K First Login Manager', array('%type_name' => $type->label)),
+      ),
+      "view any $type_name k first login manager" => array(
+        'title' => t('%type_name: View any K First Login Manager', array('%type_name' => $type->label)),
+      ),
+    );
+  }
+
+  return $permissions;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function k_first_login_manager_theme() {
+  return array(
+    'k_first_login_manager' => array(
+      'render element' => 'elements',
+      'template' => 'k_first_login_manager',
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function k_first_login_manager_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Add action link 'admin/structure/k_first_login_manager/add'
+  // on 'admin/structure/k_first_login_manager'.
+  if ($root_path == 'admin/content/k_first_login_manager') {
+    $item = menu_get_item('admin/content/k_first_login_manager/add');
+    if ($item['access']) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+/**
+ * Determines whether the given user has access to a K First Login Manager.
+ *
+ * @param string $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'
+ *   or just 'edit' (being the same as 'create' or 'update').
+ *
+ * @param object $entity
+ *   Optionally a K First Login Manager or a K First Login Manager type to check access for.
+ *   If nothing is given, access for all K First Login Manager is determined.
+ *
+ * @param object $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ *
+ * @return bool
+ *   Whether access is allowed or not.
+ */
+function k_first_login_manager_access($op, $entity = NULL, $account = NULL) {
+  if (user_access('administer k first login manager', $account)) {
+    return TRUE;
+  }
+
+  if (isset($entity) && $type_name = $entity->type) {
+    $op = ($op == 'view') ? 'view' : 'edit';
+    if (user_access("$op any $type_name k first login manager", $account)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Entity label callback.
+ */
+function k_first_login_manager_label($entity, $entity_type) {
+  return empty($entity) ? t('New K First Login Manager') : $entity->label;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function k_first_login_manager_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer k first login manager types', $account);
+}
+
+/**
+ * Gets an array of all K First Login Manager types, keyed by the type name.
+ *
+ * @param string $type_name
+ *   If set, the type with the given name is returned.
+ *
+ * @return array
+ *   Depending whether $type isset, an array of K First Login Manager types
+ *   or a single one.
+ */
+function k_first_login_manager_get_types($type_name = NULL) {
+  // entity_load will get the Entity controller for our K First Login Manager entity
+  // and call the load function of that object.
+  // We are loading entities by name here.
+  $types = entity_load_multiple_by_name('k_first_login_manager_type', isset($type_name) ? array($type_name) : FALSE);
+
+  return isset($type_name) ? reset($types) : $types;
+}
+
+/**
+ * Menu argument loader; Load a K First Login Manager type by string.
+ *
+ * @param string $type
+ *   The machine-readable name of a K First Login Manager type to load.
+ *
+ * @return mixed
+ *   A K First Login Manager type array or FALSE if $type does not exist.
+ */
+function k_first_login_manager_type_load($type) {
+  return k_first_login_manager_get_types($type);
+}
+
+/**
+ * Fetch a K First Login Manager object.
+ *
+ * @param int $k_first_login_manager_id
+ *   Integer specifying the k_first_login_manager id.
+ *
+ * @return object
+ *   A fully-loaded object or FALSE if it cannot be loaded.
+ *
+ * @see entity_load_single()
+ */
+function k_first_login_manager_load($k_first_login_manager_id) {
+  $obj = entity_load_single('k_first_login_manager', $k_first_login_manager_id);
+  $obj->al = 1;
+  dpm($obj);
+  return $obj;
+}
+
+/**
+ * Load multiple K First Login Manager based on certain conditions.
+ *
+ * @param array $k_first_login_manager_ids
+ *   An array of K First Login Manager IDs.
+ *
+ * @param array $conditions
+ *   An array of conditions to match against the k_first_login_manager table.
+ *
+ * @param bool $reset
+ *   A boolean indicating that the internal cache should be reset.
+ *
+ * @return array
+ *   An array of objects, indexed by k_first_login_manager_id.
+ *
+ * @see entity_load()
+ * @see k_first_login_manager_load()
+ */
+function k_first_login_manager_load_multiple($k_first_login_manager_ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('k_first_login_manager', $k_first_login_manager_ids, $conditions, $reset);
+}
+
+/**
+ * Deletes a K First Login Manager.
+ */
+function k_first_login_manager_delete(KFirstLoginManager $k_first_login_manager) {
+  $k_first_login_manager->delete();
+}
+
+/**
+ * Delete multiple K First Login Manager.
+ *
+ * @param array $k_first_login_manager_ids
+ *   An array of K First Login Manager IDs.
+ */
+function k_first_login_manager_delete_multiple(array $k_first_login_manager_ids) {
+  return entity_delete_multiple('k_first_login_manager', $k_first_login_manager_ids);
+}
+
+/**
+ * Create a K First Login Manager object.
+ */
+function k_first_login_manager_create($values = array()) {
+  return entity_create('k_first_login_manager', $values);
+}
+
+/**
+ * Saves a K First Login Manager to the database.
+ *
+ * @param string $k_first_login_manager
+ *   The K First Login Manager object.
+ */
+function k_first_login_manager_save($k_first_login_manager) {
+  return entity_save('k_first_login_manager', $k_first_login_manager);
+}
+
+/**
+ * Saves a K First Login Manager type to the db.
+ */
+function k_first_login_manager_type_save($type) {
+  return entity_save('k_first_login_manager_type', $type);
+}
+
+/**
+ * Deletes a K First Login Manager type from the db.
+ */
+function k_first_login_manager_type_delete(KFirstLoginManagerType $type) {
+  $type->delete();
+}
+
+/**
+ * Menu title callback for showing individual entities.
+ */
+function k_first_login_manager_page_title(KFirstLoginManager $k_first_login_manager) {
+  return $k_first_login_manager->label;
+}
+
+/**
+ * Sets up content to show an individual K First Login Manager.
+ */
+function k_first_login_manager_page_view($k_first_login_manager, $view_mode = 'full') {
+  return entity_view('k_first_login_manager_type', array($k_first_login_manager), $view_mode);
+}

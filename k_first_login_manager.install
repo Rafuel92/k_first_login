@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * k_first_login_manager install schema.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function k_first_login_manager_schema() {
+  $schema = array();
+
+  $schema['k_first_login_manager'] = array(
+    'description' => 'The base table for K First Login Manager entities.',
+    'fields' => array(
+      'k_first_login_manager_id' => array(
+        'description' => 'Primary Key: Identifier for a K First Login Manager.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The type of this K First Login Manager.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'label' => array(
+        'description' => 'The name of the K First Login Manager - a human-readable identifier.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the K First Login Manager was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the K First Login Manager was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ) + entity_exportable_schema_fields(),
+    'primary key' => array('k_first_login_manager_id'),
+    'indexes' => array(
+      'type' => array('type'),
+    ),
+  );
+
+  $schema['k_first_login_manager_type'] = array(
+    'description' => 'Stores information about defined K First Login Manager types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique K First Login Manager type identifier.',
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this K First Login Manager type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this K First Login Manager type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this K First Login Manager type in relation to others.',
+      ),
+    ) + entity_exportable_schema_fields(),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
+    ),
+  );
+
+  return $schema;
+}
