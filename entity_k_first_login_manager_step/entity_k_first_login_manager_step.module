@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Entity K first login manager Step feature.
+ */
+
+include_once 'entity_k_first_login_manager_step.features.inc';
