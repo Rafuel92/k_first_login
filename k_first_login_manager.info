@@ -3,6 +3,12 @@ description = Implementation of entity K First Login Manager
 core = 7.x
 
 dependencies[] = entity
+dependencies[] = rolereference
+dependencies[] = entityreference
+dependencies[] = ckeditor
+dependencies[] = features
+dependencies[] = entity_k_first_login_manager_step
+
 
 files[] = includes/k_first_login_manager.class.inc
 files[] = includes/k_first_login_manager.controller.inc
